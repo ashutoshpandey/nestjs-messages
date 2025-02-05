@@ -16,6 +16,12 @@ export class UsersController {
         return this.usersService.create(body.email, body.password);
     }
 
+    @Post('login')
+    async login(@Body() body: { email: string, password: string }) {
+        const success = await this.usersService.checkLogin(body.email, body.password);
+        return { success: success };
+    }
+
     @UseInterceptors(ClassSerializerInterceptor)
     @Get('/:id')
     findUser(@Param('id') id: string) {

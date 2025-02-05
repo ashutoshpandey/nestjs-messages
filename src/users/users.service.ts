@@ -1,16 +1,26 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
 import { Repository } from "typeorm";
-import { User } from "./user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
+import { Injectable, NotFoundException } from "@nestjs/common";
+
+import { User } from "./user.entity";
+import { EncryptionService } from "./services/encryption.service";
 
 @Injectable()
 export class UsersService {
     constructor(
+        private encryptionService: EncryptionService,
         @InjectRepository(User) private repo: Repository<User>) {
     }
 
-    create(email: string, password: string) {
-        const user = this.repo.create({ email, password });
+    async checkLogin(email: string, password: string) {
+        const hashedPassword = await this.encryptionService.hashPassword(password);
+        return this.encryptionService.verifyPassword(password, hashedPassword);
+    }
+
+    async create(email: string, password: string) {
+        const hashedPassword = await this.encryptionService.hashPassword(password);
+
+        const user = this.repo.create({ email, password: hashedPassword });
         return this.repo.save(user);
     }
 
